@@ -11,6 +11,7 @@ namespace WebAPIAutores.Entities
     { 
       public int ID { get; set; }
       [Required(ErrorMessage = "The name of author is required")]
+      [StringLength(maximumLength: 250)]
       public string Nombre { get; set; }
       [Range(18, 120)]
       public int Edad { get; set; }

@@ -7,6 +7,7 @@ namespace WebAPIAutores.Entities
     {
         public int ID { get; set; }
         [Required]
+        [StringLength(maximumLength: 250)]
         [FirstLetterUppercase]
         public string Titulo { get; set; }
         public int AutorID { get; set; }
