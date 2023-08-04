@@ -20,12 +20,40 @@ namespace WebAPIAutores.Controllers
         }
 
         [HttpGet]
+        [HttpGet("list")]
         public async Task<ActionResult<List<Autor>>> Get() {
             return await context.Autores.Include(autor => autor.Libro).ToListAsync();
         }
 
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<Autor>> GetById(int id) {
+            var autor =  await context.Autores.FirstOrDefaultAsync(autor => autor.ID == id);
+
+            if (autor == null) {
+                return NotFound($"Author with id: {id} not found");
+            }
+
+            return autor;
+        }
+
+        [HttpGet("{nombre}")]
+        public async Task<ActionResult<Autor>> GetByName([FromRoute] string nombre) {
+            var autor =  await context.Autores.FirstOrDefaultAsync(autor => autor.Nombre.Contains(nombre));
+
+            if (autor == null) {
+                return NotFound($"Author with name: {nombre} not found");
+            }
+
+            return autor;
+        }
+
         [HttpPost]
-        public async Task<ActionResult> Post(Autor autor) {
+        public async Task<ActionResult> Post([FromBody] Autor autor) {
+            var existAuthor = await context.Autores.AnyAsync(a => a.Nombre == autor.Nombre);
+
+            if (existAuthor)
+                return BadRequest($"Author with name: { autor.Nombre } already exists");
+
             context.Add(autor);
             await context.SaveChangesAsync();
             return Ok();
