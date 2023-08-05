@@ -1,5 +1,7 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebAPIAutores.DTO;
 using WebAPIAutores.Entities;
 
 namespace WebAPIAutores.Controllers
@@ -9,39 +11,53 @@ namespace WebAPIAutores.Controllers
     public class LibroController : ControllerBase
     {
         private readonly ApplicationDbContext context;
-        public readonly ILogger<AutoresController> log;
+        private readonly ILogger<AutoresController> log;
+        private readonly IMapper mapper;
 
-
-        public LibroController(ApplicationDbContext context, ILogger<AutoresController> log)
+        public LibroController(
+            ApplicationDbContext context,
+            ILogger<AutoresController> log,
+            IMapper mapper
+        )
         {
             this.context = context;
             this.log = log;
+            this.mapper = mapper;
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Libro>> Get(int id)
+        public async Task<ActionResult<LibroDto>> Get(int id)
         {
             log.LogInformation("Init Get");
-            var booksCollection = await context.Libros.Include(lib => lib.Autor).FirstOrDefaultAsync(libro => libro.ID == id);
+            var librosDB = await context.Libros.FirstOrDefaultAsync(libro => libro.ID == id);
+            var libros = mapper.Map<LibroDto>(librosDB);
             log.LogInformation("Finish Get");
-            return booksCollection;
+            return Ok(libros);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post(Libro libro)
+        public async Task<IActionResult> Post(AddLibroDto libroDto)
         {
             log.LogInformation("Init Post");
-            var existAutor = await context.Autores.AnyAsync(autor => autor.ID == libro.AutorID);
-
-            if (!existAutor)
+            if (libroDto.AutoresIds == null)
             {
-                log.LogError($"Error in Post Controller: name: {libro.AutorID} not found");
-                return BadRequest($"Autor not exist with ID: {libro.AutorID}");
+                return BadRequest("You can't create a book without authors");
             }
-
-            context.Add(libro);
+            var autoresIds = await context.Autores.Where(autorDB => libroDto.AutoresIds.Contains(autorDB.ID)).Select(autor => autor.ID).ToListAsync();
+            if (libroDto.AutoresIds.Count != autoresIds.Count)
+            {
+                return BadRequest("Not existing authors");
+            }
+            var newLibro = mapper.Map<Libro>(libroDto);
+            if (newLibro.AutorLibro != null)
+            {
+                for (int i = 0; i < newLibro.AutorLibro.Count; i++)
+                {
+                    newLibro.AutorLibro[i].Orden = i;
+                }
+            }
+            context.Add(newLibro);
             await context.SaveChangesAsync();
-
             log.LogInformation("Finish Post");
             return Ok();
         }
