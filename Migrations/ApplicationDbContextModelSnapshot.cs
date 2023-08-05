@@ -33,12 +33,50 @@ namespace WebAPIAutores.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Nombre")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("ID");
 
                     b.ToTable("Autores");
+                });
+
+            modelBuilder.Entity("WebAPIAutores.Entities.AutorLibro", b =>
+                {
+                    b.Property<int>("AutorId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LibroId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Orden")
+                        .HasColumnType("integer");
+
+                    b.HasKey("AutorId", "LibroId");
+
+                    b.HasIndex("LibroId");
+
+                    b.ToTable("AutorLibro");
+                });
+
+            modelBuilder.Entity("WebAPIAutores.Entities.Comentario", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
+
+                    b.Property<string>("Contenido")
+                        .HasColumnType("text");
+
+                    b.Property<int>("LibroId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("LibroId");
+
+                    b.ToTable("Comentarios");
                 });
 
             modelBuilder.Entity("WebAPIAutores.Entities.Libro", b =>
@@ -54,29 +92,54 @@ namespace WebAPIAutores.Migrations
 
                     b.Property<string>("Titulo")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
 
                     b.HasKey("ID");
-
-                    b.HasIndex("AutorID");
 
                     b.ToTable("Libros");
                 });
 
-            modelBuilder.Entity("WebAPIAutores.Entities.Libro", b =>
+            modelBuilder.Entity("WebAPIAutores.Entities.AutorLibro", b =>
                 {
                     b.HasOne("WebAPIAutores.Entities.Autor", "Autor")
-                        .WithMany("Libro")
-                        .HasForeignKey("AutorID")
+                        .WithMany("AutorLibro")
+                        .HasForeignKey("AutorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WebAPIAutores.Entities.Libro", "Libro")
+                        .WithMany("AutorLibro")
+                        .HasForeignKey("LibroId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Autor");
+
+                    b.Navigation("Libro");
+                });
+
+            modelBuilder.Entity("WebAPIAutores.Entities.Comentario", b =>
+                {
+                    b.HasOne("WebAPIAutores.Entities.Libro", "Libro")
+                        .WithMany("Comentarios")
+                        .HasForeignKey("LibroId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Libro");
                 });
 
             modelBuilder.Entity("WebAPIAutores.Entities.Autor", b =>
                 {
-                    b.Navigation("Libro");
+                    b.Navigation("AutorLibro");
+                });
+
+            modelBuilder.Entity("WebAPIAutores.Entities.Libro", b =>
+                {
+                    b.Navigation("AutorLibro");
+
+                    b.Navigation("Comentarios");
                 });
 #pragma warning restore 612, 618
         }
