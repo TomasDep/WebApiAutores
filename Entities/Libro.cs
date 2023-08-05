@@ -11,6 +11,7 @@ namespace WebAPIAutores.Entities
         [FirstLetterUppercase]
         public string Titulo { get; set; }
         public int AutorID { get; set; }
-        public Autor Autor{ get; set; }
+        public List<AutorLibro> AutorLibro { get; set; }
+        public List<Comentario> Comentarios { get; set; }
     }
 }
