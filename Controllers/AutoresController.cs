@@ -32,32 +32,35 @@ namespace WebAPIAutores.Controllers
 
         [HttpGet]
         [HttpGet("list")]
-        public async Task<List<AutorDTO>> Get()
+        public async Task<List<AutorDto>> Get()
         {
             log.LogInformation("Init Get");
             var autoresDB = await context.Autores.ToListAsync();
-            var autores = mapper.Map<List<AutorDTO>>(autoresDB);
+            var autores = mapper.Map<List<AutorDto>>(autoresDB);
             log.LogInformation("Finish Get");
             return autores;
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<ActionResult<AutorDTO>> GetById(int id)
+        [HttpGet("{id:int}", Name = "GetAutorById")]
+        public async Task<ActionResult<AutorLibroDto>> GetById(int id)
         {
             log.LogInformation("Init GetById");
-            var autorDB = await context.Autores.FirstOrDefaultAsync(autor => autor.ID == id);
+            var autorDB = await context.Autores
+                .Include(autor => autor.AutorLibro)
+                .ThenInclude(autorLibro => autorLibro.Libro)
+                .FirstOrDefaultAsync(autor => autor.ID == id);
             if (autorDB == null)
             {
                 log.LogError($"Error in GetById Controller: id {id} not found");
                 return NotFound($"Author with id: {id} not found");
             }
-            var autor = mapper.Map<AutorDTO>(autorDB);
+            var autor = mapper.Map<AutorLibroDto>(autorDB);
             log.LogInformation("Finish GetById");
             return autor;
         }
 
         [HttpGet("{nombre}")]
-        public async Task<ActionResult<List<AutorDTO>>> GetByName([FromRoute] string nombre)
+        public async Task<ActionResult<List<AutorDto>>> GetByName([FromRoute] string nombre)
         {
             log.LogInformation("Init GetByName");
             var autoresDB = await context.Autores.Where(autor => autor.Nombre.Contains(nombre)).ToListAsync();
@@ -66,37 +69,41 @@ namespace WebAPIAutores.Controllers
                 log.LogError($"Error in GetByName Controller: name: {nombre} not found");
                 return NotFound($"Author with name: {nombre} not found");
             }
-            var autores = mapper.Map<List<AutorDTO>>(autoresDB);
+            var autores = mapper.Map<List<AutorDto>>(autoresDB);
             log.LogInformation("Finish GetByName");
             return autores;
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] AddAutorDTO autorDto)
+        public async Task<ActionResult> Post([FromBody] AddAutorDto AutorDto)
         {
             log.LogInformation("Init Post");
-            var existAuthor = await context.Autores.AnyAsync(a => a.Nombre == autorDto.Nombre);
+            var existAuthor = await context.Autores.AnyAsync(a => a.Nombre == AutorDto.Nombre);
             if (existAuthor)
             {
-                log.LogError($"Error in Post Controller: autor with name: {autorDto.Nombre} not found");
-                return BadRequest($"Author with name: {autorDto.Nombre} already exists");
+                log.LogError($"Error in Post Controller: autor with name: {AutorDto.Nombre} not found");
+                return BadRequest($"Author with name: {AutorDto.Nombre} already exists");
             }
-            var autor = mapper.Map<Autor>(autorDto);
+            var autor = mapper.Map<Autor>(AutorDto);
             context.Add(autor);
             await context.SaveChangesAsync();
+            var autorDto = mapper.Map<AutorDto>(autor);
             log.LogInformation("Finish Post");
-            return Ok();
+            return CreatedAtRoute("GetAutorById", new { id = autor.ID }, autorDto);
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(Autor autor, int id)
+        public async Task<ActionResult> Put(AddAutorDto addAutorDto, int id)
         {
             log.LogInformation("Init Put");
-            if (autor.ID != id)
+            var existAuthor = await context.Autores.AnyAsync(a => a.ID == id);
+            if (!existAuthor)
             {
                 log.LogError($"Error in Put Controller: id {id} not found");
-                return BadRequest($"Author with id: {id} not found");
+                return NotFound($"Author with id: {id} not found");
             }
+            var autor = mapper.Map<Autor>(addAutorDto);
+            autor.ID = id;
             context.Update(autor);
             await context.SaveChangesAsync();
             log.LogInformation("Finish Put");
