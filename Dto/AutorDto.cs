@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WebAPIAutores.DTO
 {
-    public class AutorDTO
+    public class AutorDto
     {
         public int ID { get; set; }
         public string Nombre { get; set; }
@@ -10,7 +10,7 @@ namespace WebAPIAutores.DTO
     }
 
 
-    public class AddAutorDTO
+    public class AddAutorDto
     {
         [Required(ErrorMessage = "The name of author is required")]
         [StringLength(maximumLength: 250)]
