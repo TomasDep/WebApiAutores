@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebAPIAutores;
+using WebAPIAutores.Services;
 
 namespace WebApiAutores
 {
@@ -22,7 +24,13 @@ namespace WebApiAutores
                 options.UseNpgsql(Configuration.GetConnectionString("defaultConnection")));
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
+            services.AddScoped<IAutorServices, AutorServicesImpl>();
+            services.AddScoped<ILibrosServices, LibrosServicesImpl>();
+            services.AddScoped<IComentariosServices, ComentariosServicesImpl>();
             services.AddAutoMapper(typeof(Startup));
+            services.AddIdentity<IdentityUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
