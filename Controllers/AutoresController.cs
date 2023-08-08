@@ -1,4 +1,6 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -8,6 +10,7 @@ using System.Threading.Tasks;
 using WebAPIAutores;
 using WebAPIAutores.DTO;
 using WebAPIAutores.Entities;
+using WebAPIAutores.Models;
 
 namespace WebAPIAutores.Controllers
 {
@@ -15,115 +18,56 @@ namespace WebAPIAutores.Controllers
     [Route("api/autores")]
     public class AutoresController : ControllerBase
     {
-        private readonly ApplicationDbContext context;
         private readonly ILogger<AutoresController> log;
-        private readonly IMapper mapper;
+        private readonly IAutorServices autorServices;
 
-        public AutoresController(
-            ApplicationDbContext context,
-            ILogger<AutoresController> log,
-            IMapper mapper
-        )
+        public AutoresController(ILogger<AutoresController> log, IAutorServices autorServices)
         {
-            this.context = context;
             this.log = log;
-            this.mapper = mapper;
+            this.autorServices = autorServices;
         }
 
         [HttpGet]
-        [HttpGet("list")]
-        public async Task<List<AutorDto>> Get()
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public Task<List<AutorDto>> Get()
         {
             log.LogInformation("Init Get");
-            var autoresDB = await context.Autores.ToListAsync();
-            var autores = mapper.Map<List<AutorDto>>(autoresDB);
-            log.LogInformation("Finish Get");
-            return autores;
+            return autorServices.GetCollectionAuthors(log);
         }
 
         [HttpGet("{id:int}", Name = "GetAutorById")]
-        public async Task<ActionResult<AutorLibroDto>> GetById(int id)
+        public Task<ActionResult<AutorLibroDto>> GetById(int id)
         {
             log.LogInformation("Init GetById");
-            var autorDB = await context.Autores
-                .Include(autor => autor.AutorLibro)
-                .ThenInclude(autorLibro => autorLibro.Libro)
-                .FirstOrDefaultAsync(autor => autor.ID == id);
-            if (autorDB == null)
-            {
-                log.LogError($"Error in GetById Controller: id {id} not found");
-                return NotFound($"Author with id: {id} not found");
-            }
-            var autor = mapper.Map<AutorLibroDto>(autorDB);
-            log.LogInformation("Finish GetById");
-            return autor;
+            return autorServices.GetAuthorById(id, log);
         }
 
         [HttpGet("{nombre}")]
-        public async Task<ActionResult<List<AutorDto>>> GetByName([FromRoute] string nombre)
+        public Task<ActionResult<List<AutorDto>>> GetByName([FromRoute] string nombre)
         {
             log.LogInformation("Init GetByName");
-            var autoresDB = await context.Autores.Where(autor => autor.Nombre.Contains(nombre)).ToListAsync();
-            if (autoresDB == null)
-            {
-                log.LogError($"Error in GetByName Controller: name: {nombre} not found");
-                return NotFound($"Author with name: {nombre} not found");
-            }
-            var autores = mapper.Map<List<AutorDto>>(autoresDB);
-            log.LogInformation("Finish GetByName");
-            return autores;
+            return autorServices.GetAuthorByName(nombre, log);
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] AddAutorDto AutorDto)
+        public Task<ActionResult> Post([FromBody] AddAutorDto AutorDto)
         {
             log.LogInformation("Init Post");
-            var existAuthor = await context.Autores.AnyAsync(a => a.Nombre == AutorDto.Nombre);
-            if (existAuthor)
-            {
-                log.LogError($"Error in Post Controller: autor with name: {AutorDto.Nombre} not found");
-                return BadRequest($"Author with name: {AutorDto.Nombre} already exists");
-            }
-            var autor = mapper.Map<Autor>(AutorDto);
-            context.Add(autor);
-            await context.SaveChangesAsync();
-            var autorDto = mapper.Map<AutorDto>(autor);
-            log.LogInformation("Finish Post");
-            return CreatedAtRoute("GetAutorById", new { id = autor.ID }, autorDto);
+            return autorServices.CreateAuthor(AutorDto, log);
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(AddAutorDto addAutorDto, int id)
+        public Task<ActionResult> Put(AddAutorDto addAutorDto, int id)
         {
             log.LogInformation("Init Put");
-            var existAuthor = await context.Autores.AnyAsync(a => a.ID == id);
-            if (!existAuthor)
-            {
-                log.LogError($"Error in Put Controller: id {id} not found");
-                return NotFound($"Author with id: {id} not found");
-            }
-            var autor = mapper.Map<Autor>(addAutorDto);
-            autor.ID = id;
-            context.Update(autor);
-            await context.SaveChangesAsync();
-            log.LogInformation("Finish Put");
-            return Ok();
+            return autorServices.UpdateAuthor(addAutorDto, id, log);
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult> Delete(int id)
+        public Task<ActionResult> Delete(int id)
         {
             log.LogInformation("Init Delete");
-            var exist = await context.Autores.AnyAsync(autor => autor.ID == id);
-            if (!exist)
-            {
-                log.LogError($"Error in Delete Controller: autor with id: {id} not found");
-                return NotFound();
-            }
-            context.Remove(new Autor() { ID = id });
-            await context.SaveChangesAsync();
-            log.LogInformation("Finish Delete");
-            return Ok();
+            return autorServices.RemoveAuthor(id, log);
         }
     }
 }
