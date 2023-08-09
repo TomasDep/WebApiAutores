@@ -8,6 +8,7 @@ namespace WebAPIAutores.Controllers
 {
     [ApiController]
     [Route("api/autores")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "IsAdmin")]
     public class AutoresController : ControllerBase
     {
         private readonly ILogger<AutoresController> log;
@@ -20,15 +21,14 @@ namespace WebAPIAutores.Controllers
         }
 
         [HttpGet]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public Task<List<AutorDto>> Get()
         {
             log.LogInformation("Init Get");
             return autorServices.GetCollectionAuthors(log);
         }
 
-        [HttpGet("{id:int}", Name = "GetAutorById")]
         [AllowAnonymous]
+        [HttpGet("{id:int}", Name = "GetAutorById")]
         public Task<ActionResult<AutorLibroDto>> GetById(int id)
         {
             log.LogInformation("Init GetById");
