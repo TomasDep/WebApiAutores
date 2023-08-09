@@ -269,9 +269,14 @@ namespace WebAPIAutores.Migrations
                     b.Property<int>("LibroId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("UsuarioID")
+                        .HasColumnType("text");
+
                     b.HasKey("ID");
 
                     b.HasIndex("LibroId");
+
+                    b.HasIndex("UsuarioID");
 
                     b.ToTable("Comentarios");
                 });
@@ -378,7 +383,13 @@ namespace WebAPIAutores.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioID");
+
                     b.Navigation("Libro");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("WebAPIAutores.Entities.Autor", b =>
