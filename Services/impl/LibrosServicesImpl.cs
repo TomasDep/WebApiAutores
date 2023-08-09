@@ -8,7 +8,7 @@ using WebAPIAutores.Entities;
 
 namespace WebAPIAutores.Services
 {
-    public class LibrosServicesImpl : ILibrosServices
+    public class LibrosServicesImpl : ControllerBase, ILibrosServices
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
@@ -129,12 +129,11 @@ namespace WebAPIAutores.Services
                 }
                 var libroDto = mapper.Map<UpdateLibroDto>(libroDB);
                 patchDocument.ApplyTo(libroDto, modelState);
-                // TODO: resolver este error.
-                /*var isValid = TryValidateModel(libroDto);
+                var isValid = TryValidateModel(libroDto);
                 if (!isValid)
                 {
                     return new BadRequestObjectResult("You can't update a book, error in ModelState") { StatusCode = 400, Value = modelState };
-                }*/
+                }
                 mapper.Map(libroDto, libroDB);
                 await context.SaveChangesAsync();
                 return new ObjectResult("") { StatusCode = 204 };
