@@ -1,16 +1,8 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using WebAPIAutores;
 using WebAPIAutores.DTO;
-using WebAPIAutores.Entities;
-using WebAPIAutores.Models;
+using WebAPIAutores.Services;
 
 namespace WebAPIAutores.Controllers
 {
@@ -28,7 +20,7 @@ namespace WebAPIAutores.Controllers
         }
 
         [HttpGet]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public Task<List<AutorDto>> Get()
         {
             log.LogInformation("Init Get");
@@ -36,6 +28,7 @@ namespace WebAPIAutores.Controllers
         }
 
         [HttpGet("{id:int}", Name = "GetAutorById")]
+        [AllowAnonymous]
         public Task<ActionResult<AutorLibroDto>> GetById(int id)
         {
             log.LogInformation("Init GetById");
