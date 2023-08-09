@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using WebAPIAutores.Entities;
 using WebAPIAutores.Validators;
 
 namespace WebAPIAutores.DTO

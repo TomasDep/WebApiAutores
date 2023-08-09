@@ -1,10 +1,7 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using WebAPIAutores.DTO;
-using WebAPIAutores.Entities;
 using WebAPIAutores.Services;
 
 namespace WebAPIAutores.Controllers
