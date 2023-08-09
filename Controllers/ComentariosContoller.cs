@@ -1,4 +1,6 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebAPIAutores.DTO;
@@ -23,7 +25,7 @@ namespace WebAPIAutores.Controllers
         [HttpGet]
         public Task<ActionResult<List<ComentarioDto>>> Get(int libroId)
         {
-           return comentariosServices.GetCollectionComentarios(libroId);
+            return comentariosServices.GetCollectionComentarios(libroId);
         }
 
         [HttpGet("{id:int}", Name = "GetComentarioById")]
@@ -33,15 +35,17 @@ namespace WebAPIAutores.Controllers
         }
 
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public Task<ActionResult> Post(int libroId, AddComentarioDto addComentarioDto)
         {
-            return comentariosServices.CreateComentario(libroId, addComentarioDto); 
+            var emailClaim = HttpContext.User.Claims.Where(claim => claim.Type == "email").FirstOrDefault();
+            return comentariosServices.CreateComentario(libroId, addComentarioDto, emailClaim);
         }
 
         [HttpPut("{id:int}")]
         public Task<ActionResult> Put(int libroId, int id, AddComentarioDto addComentarioDto)
         {
-            return comentariosServices.UpdateComentario(libroId, id, addComentarioDto); 
+            return comentariosServices.UpdateComentario(libroId, id, addComentarioDto);
         }
     }
 }
