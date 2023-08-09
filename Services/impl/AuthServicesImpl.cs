@@ -25,12 +25,19 @@ namespace WebAPIAutores.Services
             this.signingManager = signingManager;
         }
 
+        public async Task<ActionResult> GrantAdmin(UpdateAuthDto updateAuthDto)
+        {
+            var usuario = await userManager.FindByEmailAsync(updateAuthDto.Email);
+            await userManager.AddClaimAsync(usuario, new Claim("isAdmin", "1"));
+            return new NoContentResult();
+        }
+
         public async Task<ActionResult<AuthDto>> Login([FromBody] AuthRegisterDto authRegisterDto)
         {
             var resultado = await signingManager.PasswordSignInAsync(authRegisterDto.Email, authRegisterDto.Password, isPersistent: false, lockoutOnFailure: false);
             if (resultado.Succeeded)
             {
-                return JwtTokenBuilder(authRegisterDto);
+                return await JwtTokenBuilder(authRegisterDto);
             }
             else
             {
@@ -44,7 +51,7 @@ namespace WebAPIAutores.Services
             var resultado = await userManager.CreateAsync(usuario, authRegisterDto.Password);
             if (resultado.Succeeded)
             {
-                return JwtTokenBuilder(authRegisterDto);
+                return await JwtTokenBuilder(authRegisterDto);
             }
             else
             {
@@ -52,11 +59,28 @@ namespace WebAPIAutores.Services
             }
         }
 
-        private AuthDto JwtTokenBuilder(AuthRegisterDto authRegisterDto)
+        public async Task<ActionResult> RemoveAdmin(UpdateAuthDto updateAuthDto)
+        {
+            var usuario = await userManager.FindByEmailAsync(updateAuthDto.Email);
+            await userManager.RemoveClaimAsync(usuario, new Claim("isAdmin", "1"));
+            return new NoContentResult();
+        }
+
+        public async Task<ActionResult<AuthDto>> Renew(Claim emailClaim)
+        {
+            var email = emailClaim.Value;
+            var credencialesUsuario = new AuthRegisterDto() { Email = email };
+            return await JwtTokenBuilder(credencialesUsuario);
+        }
+
+        private async Task<AuthDto> JwtTokenBuilder(AuthRegisterDto authRegisterDto)
         {
             var claims = new List<Claim>() {
                 new Claim("email", authRegisterDto.Email),
             };
+            var usuario = await userManager.FindByEmailAsync(authRegisterDto.Email);
+            var claimsDB = await userManager.GetClaimsAsync(usuario);
+            claims.AddRange(claimsDB);
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["keyJwt"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expiracion = DateTime.UtcNow.AddMinutes(60);

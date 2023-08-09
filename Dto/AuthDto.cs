@@ -16,4 +16,11 @@ namespace WebAPIAutores.DTO
         [Required]
         public string Password { get; set; }
     }
+
+    public class UpdateAuthDto
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+    }
 }
