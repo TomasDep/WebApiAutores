@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebAPIAutores.DTO;
 using WebAPIAutores.Entities;
+using WebAPIAutores.Services;
 
 namespace WebAPIAutores.Controllers
 {
@@ -10,78 +11,37 @@ namespace WebAPIAutores.Controllers
     [Route("api/libros/{libroId:int}/comentarios")]
     public class ComentariosController : ControllerBase
     {
-        private readonly ApplicationDbContext context;
         private readonly ILogger<AutoresController> log;
-        private readonly IMapper mapper;
+        private readonly IComentariosServices comentariosServices;
 
-        public ComentariosController(
-            ApplicationDbContext context,
-            ILogger<AutoresController> log,
-            IMapper mapper
-        )
+        public ComentariosController(IComentariosServices comentariosServices, ILogger<AutoresController> log)
         {
-            this.context = context;
+            this.comentariosServices = comentariosServices;
             this.log = log;
-            this.mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<ComentarioDto>>> Get(int libroId)
+        public Task<ActionResult<List<ComentarioDto>>> Get(int libroId)
         {
-            var isLibro = await this.context.Libros.AnyAsync(libroDB => libroDB.ID == libroId);
-            if (!isLibro)
-            {
-                return NotFound();
-            }
-            var listComentariosDB = await context.Comentarios.Where(comentario => comentario.LibroId == libroId).ToListAsync();
-            var listComentarios = mapper.Map<List<ComentarioDto>>(listComentariosDB);
-            return listComentarios;
+           return comentariosServices.GetCollectionComentarios(libroId);
         }
 
         [HttpGet("{id:int}", Name = "GetComentarioById")]
-        public async Task<ActionResult<ComentarioDto>> GetById(int id)
+        public Task<ActionResult<ComentarioDto>> GetById(int id)
         {
-            var comentarioBD = await context.Comentarios.FirstOrDefaultAsync(comentario => comentario.ID == id);
-            if (comentarioBD == null) return NotFound();
-            var comentarioDto = mapper.Map<ComentarioDto>(comentarioBD);
-            return comentarioDto;
+            return comentariosServices.GetComentarioById(id);
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post(int libroId, AddComentarioDto addComentarioDto)
+        public Task<ActionResult> Post(int libroId, AddComentarioDto addComentarioDto)
         {
-            var isLibro = await this.context.Libros.AnyAsync(libroDB => libroDB.ID == libroId);
-            if (!isLibro)
-            {
-                return NotFound();
-            }
-            var newComentario = mapper.Map<Comentario>(addComentarioDto);
-            newComentario.LibroId = libroId;
-            context.Add(newComentario);
-            await context.SaveChangesAsync();
-            var comentarioDto = mapper.Map<ComentarioDto>(newComentario);
-            return CreatedAtRoute("GetComentarioById", new { id = newComentario.ID, libroId = libroId }, comentarioDto);
+            return comentariosServices.CreateComentario(libroId, addComentarioDto); 
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(int libroId, int id, AddComentarioDto addComentarioDto)
+        public Task<ActionResult> Put(int libroId, int id, AddComentarioDto addComentarioDto)
         {
-            var isLibro = await this.context.Libros.AnyAsync(libroDB => libroDB.ID == libroId);
-            if (!isLibro)
-            {
-                return NotFound();
-            }
-            var existComentario = await context.Comentarios.AnyAsync(comentadioDB => comentadioDB.ID == id);
-            if (!existComentario)
-            {
-                return NotFound();
-            }
-            var comentario = mapper.Map<Comentario>(addComentarioDto);
-            comentario.ID = id;
-            comentario.LibroId = libroId;
-            context.Update(comentario);
-            await context.SaveChangesAsync();
-            return Ok();
+            return comentariosServices.UpdateComentario(libroId, id, addComentarioDto); 
         }
     }
 }
