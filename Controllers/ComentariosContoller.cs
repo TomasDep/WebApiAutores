@@ -19,19 +19,19 @@ namespace WebAPIAutores.Controllers
             this.log = log;
         }
 
-        [HttpGet]
+        [HttpGet(Name = "obtenerColleccionComentarios")]
         public Task<ActionResult<List<ComentarioDto>>> Get(int libroId)
         {
             return comentariosServices.GetCollectionComentarios(libroId);
         }
 
-        [HttpGet("{id:int}", Name = "GetComentarioById")]
+        [HttpGet("{id:int}", Name = "obtenerComentarioPorId")]
         public Task<ActionResult<ComentarioDto>> GetById(int id)
         {
             return comentariosServices.GetComentarioById(id);
         }
 
-        [HttpPost]
+        [HttpPost(Name = "crearComentario")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public Task<ActionResult> Post(int libroId, AddComentarioDto addComentarioDto)
         {
@@ -39,7 +39,7 @@ namespace WebAPIAutores.Controllers
             return comentariosServices.CreateComentario(libroId, addComentarioDto, emailClaim);
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int}", Name = "actualizarComentario")]
         public Task<ActionResult> Put(int libroId, int id, AddComentarioDto addComentarioDto)
         {
             return comentariosServices.UpdateComentario(libroId, id, addComentarioDto);
