@@ -1,5 +1,8 @@
+using System.Security.Claims;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using WebAPIAutores.DTO;
 using WebAPIAutores.Entities;
@@ -10,11 +13,17 @@ namespace WebAPIAutores.Services
     {
         private readonly ApplicationDbContext context;
         private readonly IMapper mapper;
+        private readonly IAuthorizationService authorizationService;
 
-        public AutorServicesImpl(ApplicationDbContext context, IMapper mapper)
+        public AutorServicesImpl(
+            ApplicationDbContext context,
+            IMapper mapper,
+            IAuthorizationService authorizationService
+        )
         {
             this.context = context;
             this.mapper = mapper;
+            this.authorizationService = authorizationService;
         }
 
         public async Task<ActionResult> CreateAuthor(AddAutorDto AutorDto, ILogger log)
@@ -40,7 +49,7 @@ namespace WebAPIAutores.Services
             }
         }
 
-        public async Task<ActionResult<AutorLibroDto>> GetAuthorById(int id, ILogger log)
+        public async Task<ActionResult<AutorLibroDto>> GetAuthorById(int id, ILogger log, IUrlHelper urlHelper, ClaimsPrincipal User)
         {
             try
             {
@@ -54,6 +63,8 @@ namespace WebAPIAutores.Services
                     return new NotFoundObjectResult($"Author with ID: {id} not exist") { StatusCode = 404 };
                 }
                 var autor = mapper.Map<AutorLibroDto>(autorDB);
+                var isAdmin = await authorizationService.AuthorizeAsync(User, "isAdmin");
+                GenerarEnlaces(autor, urlHelper, isAdmin.Succeeded);
                 log.LogInformation("Finish GetById");
                 return new ObjectResult(autor) { StatusCode = 200, Value = autor };
             }
@@ -84,14 +95,35 @@ namespace WebAPIAutores.Services
             }
         }
 
-        public async Task<List<AutorDto>> GetCollectionAuthors(ILogger log)
+        public async Task<IActionResult> GetCollectionAuthors(IUrlHelper urlHelper, ClaimsPrincipal User, bool includeHATEOAS, ILogger log)
         {
             try
             {
                 var autoresDB = await context.Autores.ToListAsync();
                 var autores = mapper.Map<List<AutorDto>>(autoresDB);
+                if (includeHATEOAS)
+                {
+                    var isAdmin = await authorizationService.AuthorizeAsync(User, "isAdmin");
+                    autores.ForEach(autor => GenerarEnlaces(autor, urlHelper, isAdmin.Succeeded));
+                    var result = new ColleccionRecursos<AutorDto> { Valores = autores };
+                    result.Enlaces.Add(new DataHATEOASDto(
+                        enlace: urlHelper.Link("obtenerColleccionAutores", new { }),
+                        descripcion: "self",
+                        metodo: "GET"
+                    ));
+                    if (isAdmin.Succeeded)
+                    {
+                        result.Enlaces.Add(new DataHATEOASDto(
+                            enlace: urlHelper.Link("crearAutor", new { }),
+                            descripcion: "crear-autor",
+                            metodo: "POST"
+                        ));
+                    }
+                    log.LogInformation("Finish Get");
+                    return new OkObjectResult(result);
+                }
                 log.LogInformation("Finish Get");
-                return autores;
+                return new OkObjectResult(autores);
             }
             catch (Exception e)
             {
@@ -140,6 +172,28 @@ namespace WebAPIAutores.Services
             catch (Exception e)
             {
                 throw new Exception($"Core Exception : {e.Message}");
+            }
+        }
+
+        private static void GenerarEnlaces(AutorDto autorDto, IUrlHelper urlHelper, bool isAdmin)
+        {
+            autorDto.Enlaces.Add(new DataHATEOASDto(
+                enlace: urlHelper.Link("obtenerAutorPorId", new { id = autorDto.ID }),
+                descripcion: "self",
+                metodo: "GET"
+            ));
+            if (isAdmin)
+            {
+                autorDto.Enlaces.Add(new DataHATEOASDto(
+                    enlace: urlHelper.Link("actualizarAutor", new { id = autorDto.ID }),
+                    descripcion: "autor-actualizar",
+                    metodo: "PUT"
+                ));
+                autorDto.Enlaces.Add(new DataHATEOASDto(
+                    enlace: urlHelper.Link("borrarAutor", new { id = autorDto.ID }),
+                    descripcion: "self",
+                    metodo: "DELETE"
+                ));
             }
         }
     }

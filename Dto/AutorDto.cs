@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WebAPIAutores.DTO
 {
-    public class AutorDto
+    public class AutorDto : RecursoDto
     {
         public int ID { get; set; }
         public string Nombre { get; set; }

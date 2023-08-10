@@ -20,43 +20,45 @@ namespace WebAPIAutores.Controllers
             this.autorServices = autorServices;
         }
 
-        [HttpGet]
-        public Task<List<AutorDto>> Get()
+        [AllowAnonymous]
+        [HttpGet(Name = "obtenerColleccionAutores")]
+        public Task<IActionResult> Get([FromQuery] bool includeHATEOAS = true)
         {
             log.LogInformation("Init Get");
-            return autorServices.GetCollectionAuthors(log);
+            return autorServices.GetCollectionAuthors(Url, User, includeHATEOAS, log);
         }
 
         [AllowAnonymous]
-        [HttpGet("{id:int}", Name = "GetAutorById")]
+        [HttpGet("{id:int}", Name = "obtenerAutorPorId")]
         public Task<ActionResult<AutorLibroDto>> GetById(int id)
         {
             log.LogInformation("Init GetById");
-            return autorServices.GetAuthorById(id, log);
+            return autorServices.GetAuthorById(id, log, Url, User);
         }
 
-        [HttpGet("{nombre}")]
+        [AllowAnonymous]
+        [HttpGet("{nombre}", Name = "obtenerAutorPorNombre")]
         public Task<ActionResult<List<AutorDto>>> GetByName([FromRoute] string nombre)
         {
             log.LogInformation("Init GetByName");
             return autorServices.GetAuthorByName(nombre, log);
         }
 
-        [HttpPost]
+        [HttpPost(Name = "crearAutor")]
         public Task<ActionResult> Post([FromBody] AddAutorDto AutorDto)
         {
             log.LogInformation("Init Post");
             return autorServices.CreateAuthor(AutorDto, log);
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int}", Name = "actualizarAutor")]
         public Task<ActionResult> Put(AddAutorDto addAutorDto, int id)
         {
             log.LogInformation("Init Put");
             return autorServices.UpdateAuthor(addAutorDto, id, log);
         }
 
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:int}", Name = "borrarAutor")]
         public Task<ActionResult> Delete(int id)
         {
             log.LogInformation("Init Delete");
