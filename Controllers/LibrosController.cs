@@ -18,33 +18,33 @@ namespace WebAPIAutores.Controllers
             this.log = log;
         }
 
-        [HttpGet("{id:int}", Name = "GetLibroById")]
+        [HttpGet("{id:int}", Name = "obtenerLibroPorId")]
         public Task<ActionResult<LibroAutorDto>> GetById(int id)
         {
             log.LogInformation("Init Get");
             return librosServices.GetLibroById(id, log);
         }
 
-        [HttpPost]
+        [HttpPost(Name = "crearLibro")]
         public Task<IActionResult> Post(AddLibroDto addlibroDto)
         {
             log.LogInformation("Init Post");
             return librosServices.CreateLibro(addlibroDto, log);
         }
 
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int}", Name = "actualizarLibro")]
         public async Task<ActionResult> Put(int id, AddLibroDto addLibroDto)
         {
             return await librosServices.UpdateLibro(id, addLibroDto, log);
         }
 
-        [HttpPatch("{id:int}")]
+        [HttpPatch("{id:int}", Name = "actualizarDatosLibro")]
         public Task<ActionResult> Patch(int id, JsonPatchDocument<UpdateLibroDto> patchDocument)
         {
             return librosServices.UpdateLibro(id, patchDocument, ModelState, log);
         }
 
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:int}", Name = "borrarLibro")]
         public Task<ActionResult> DeleteAsync(int id)
         {
             return librosServices.RemoveLibro(id, log);
