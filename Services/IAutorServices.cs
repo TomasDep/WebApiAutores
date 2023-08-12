@@ -6,7 +6,7 @@ namespace WebAPIAutores.Services
 {
     public interface IAutorServices
     {
-        Task<IActionResult> GetCollectionAuthors(IUrlHelper urlHelper, ClaimsPrincipal User, bool includeHATEOAS, ILogger log);
+        Task<IActionResult> GetCollectionAuthors(IUrlHelper urlHelper, ClaimsPrincipal User, ILogger log, PaginationDto paginationDto, HttpContext httpContext, string version);
         Task<ActionResult<AutorLibroDto>> GetAuthorById(int id, ILogger log, IUrlHelper urlHelper, ClaimsPrincipal User);
         Task<ActionResult<List<AutorDto>>> GetAuthorByName(string nombre, ILogger log);
         Task<ActionResult> CreateAuthor(AddAutorDto AutorDto, ILogger log);
