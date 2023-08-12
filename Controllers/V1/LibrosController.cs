@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using WebAPIAutores.DTO;
 using WebAPIAutores.Services;
 
-namespace WebAPIAutores.Controllers
+namespace WebAPIAutores.Controllers.V1
 {
     [ApiController]
-    [Route("api/libros")]
+    [Route("api/v1/libros")]
     public class LibroController : ControllerBase
     {
         private readonly ILogger<AutoresController> log;
@@ -18,33 +18,33 @@ namespace WebAPIAutores.Controllers
             this.log = log;
         }
 
-        [HttpGet("{id:int}", Name = "obtenerLibroPorId")]
+        [HttpGet("{id:int}", Name = "obtenerLibroPorIdV1")]
         public Task<ActionResult<LibroAutorDto>> GetById(int id)
         {
             log.LogInformation("Init Get");
             return librosServices.GetLibroById(id, log);
         }
 
-        [HttpPost(Name = "crearLibro")]
+        [HttpPost(Name = "crearLibroV1")]
         public Task<IActionResult> Post(AddLibroDto addlibroDto)
         {
             log.LogInformation("Init Post");
             return librosServices.CreateLibro(addlibroDto, log);
         }
 
-        [HttpPut("{id:int}", Name = "actualizarLibro")]
+        [HttpPut("{id:int}", Name = "actualizarLibroV1")]
         public async Task<ActionResult> Put(int id, AddLibroDto addLibroDto)
         {
             return await librosServices.UpdateLibro(id, addLibroDto, log);
         }
 
-        [HttpPatch("{id:int}", Name = "actualizarDatosLibro")]
+        [HttpPatch("{id:int}", Name = "actualizarDatosLibroV1")]
         public Task<ActionResult> Patch(int id, JsonPatchDocument<UpdateLibroDto> patchDocument)
         {
             return librosServices.UpdateLibro(id, patchDocument, ModelState, log);
         }
 
-        [HttpDelete("{id:int}", Name = "borrarLibro")]
+        [HttpDelete("{id:int}", Name = "borrarLibroV1")]
         public Task<ActionResult> DeleteAsync(int id)
         {
             return librosServices.RemoveLibro(id, log);

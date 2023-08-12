@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using WebAPIAutores.DTO;
 using WebAPIAutores.Services;
 
-namespace WebAPIAutores.Controllers
+namespace WebAPIAutores.Controllers.V1
 {
     [ApiController]
-    [Route("api/libros/{libroId:int}/comentarios")]
+    [Route("api/v1/libros/{libroId:int}/comentarios")]
     public class ComentariosController : ControllerBase
     {
         private readonly ILogger<AutoresController> log;
@@ -19,19 +19,19 @@ namespace WebAPIAutores.Controllers
             this.log = log;
         }
 
-        [HttpGet(Name = "obtenerColleccionComentarios")]
+        [HttpGet(Name = "obtenerColleccionComentariosV1")]
         public Task<ActionResult<List<ComentarioDto>>> Get(int libroId)
         {
             return comentariosServices.GetCollectionComentarios(libroId);
         }
 
-        [HttpGet("{id:int}", Name = "obtenerComentarioPorId")]
+        [HttpGet("{id:int}", Name = "obtenerComentarioPorIdV1")]
         public Task<ActionResult<ComentarioDto>> GetById(int id)
         {
             return comentariosServices.GetComentarioById(id);
         }
 
-        [HttpPost(Name = "crearComentario")]
+        [HttpPost(Name = "crearComentarioV1")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public Task<ActionResult> Post(int libroId, AddComentarioDto addComentarioDto)
         {
@@ -39,7 +39,7 @@ namespace WebAPIAutores.Controllers
             return comentariosServices.CreateComentario(libroId, addComentarioDto, emailClaim);
         }
 
-        [HttpPut("{id:int}", Name = "actualizarComentario")]
+        [HttpPut("{id:int}", Name = "actualizarComentarioV1")]
         public Task<ActionResult> Put(int libroId, int id, AddComentarioDto addComentarioDto)
         {
             return comentariosServices.UpdateComentario(libroId, id, addComentarioDto);

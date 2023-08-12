@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using WebAPIAutores.DTO;
 using WebAPIAutores.Services;
 
-namespace WebAPIAutores.Controllers
+namespace WebAPIAutores.Controllers.V
 {
     [ApiController]
-    [Route("api/auth")]
+    [Route("api/v1/auth")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthServices authServices;
@@ -17,19 +17,19 @@ namespace WebAPIAutores.Controllers
             this.authServices = authServices;
         }
 
-        [HttpPost("register", Name = "registrarUsuario")]
+        [HttpPost("register", Name = "registrarUsuarioV1")]
         public Task<ActionResult<AuthDto>> Register([FromBody] AuthRegisterDto authRegisterDto)
         {
             return authServices.Register(authRegisterDto);
         }
 
-        [HttpPost("login", Name = "loginUsuario")]
+        [HttpPost("login", Name = "loginUsuarioV1")]
         public Task<ActionResult<AuthDto>> Login([FromBody] AuthRegisterDto authRegisterDto)
         {
             return authServices.Login(authRegisterDto);
         }
 
-        [HttpGet("renew", Name = "actualizarToken")]
+        [HttpGet("renew", Name = "actualizarTokenV1")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public Task<ActionResult<AuthDto>> Renew()
         {
@@ -37,13 +37,13 @@ namespace WebAPIAutores.Controllers
             return authServices.Renew(emailClaim);
         }
 
-        [HttpPost("grant/admin", Name = "hacerAdmin")]
+        [HttpPost("grant/admin", Name = "hacerAdminV1")]
         public Task<ActionResult> GrantAdmin([FromBody] UpdateAuthDto updateAuthDto)
         {
             return authServices.GrantAdmin(updateAuthDto);
         }
 
-        [HttpPost("remove/admin", Name = "removerAdmin")]
+        [HttpPost("remove/admin", Name = "removerAdminV1")]
         public Task<ActionResult> RemoveAdmin([FromBody] UpdateAuthDto updateAuthDto)
         {
             return authServices.RemoveAdmin(updateAuthDto);

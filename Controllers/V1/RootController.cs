@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebAPIAutores.DTO;
 
-namespace WebAPIAutores.Controllers
+namespace WebAPIAutores.Controllers.V1
 {
     [ApiController]
-    [Route("api")]
+    [Route("api/v1")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class RootController : ControllerBase
     {
@@ -18,7 +18,7 @@ namespace WebAPIAutores.Controllers
             this.authorizationService = authorizationService;
         }
 
-        [HttpGet(Name = "getRoot")]
+        [HttpGet(Name = "getRootV1")]
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<DataHATEOASDto>>> Get()
         {
